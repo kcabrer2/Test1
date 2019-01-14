@@ -1,0 +1,144 @@
+---
+title: "EE 283 - Lab 1"
+author: "Kevin Cabrera"
+date: "1/10/2019"
+output: html_document
+---
+
+# Chapter 7: Tibbles
+1). Create a small tibble manually
+```{r}
+tibble_example <- tibble(ranks = 1:4, countries = c('Spain', 'France', 'Ukraine', 'Sweden'),
+                         age = c(23,27,28,25))
+tibble_example
+```
+2). How can you tell if an object is a tibble? (Hint: try printing mtcars, which is a regular data frame).
+```{r}
+head(mtcars)
+tibble_example
+```
+*Tibbles will explicitly say that they are tibbles whereas Data Frames will just display the information as a table*
+
+3). Compare and contrast the following operations on a data.frame and equivalent tibble. What is different? Why might the default data frame behaviours cause you frustration?
+```{r}
+df <- data.frame(abc = 1, xyz = "a")
+df$x
+df[, "xyz"]
+df[, c("abc", "xyz")]
+
+df_tibble <- tibble(abc=1, xyz="a")
+df_tibble$x
+df_tibble[, "xyz"]
+df_tibble[, c("abc", "xyz")]
+```
+*df_tribble$x returns an error rather than returning the data for column 'xyz' (there is no partial matching), df_tibble[, "xyz"] also returns the data for column xyz but returns it as another tibble, df_tibble[, c("abc", "xyz")] also returns the row data for both columns but just as a tibble again*
+
+4). Practice referring to non-syntactic names in the following data frame by:
+```{r}
+annoying <- tibble(
+  `1` = 1:10,
+  `2` = `1` * 2 + rnorm(length(`1`))
+)
+```
+* Extracting the variable called 1.
+```{r}
+Column_One <- annoying$`1`
+```
+* Plotting a scatterplot of 1 vs 2.
+```{r}
+plot(x = annoying$`1`, y = annoying$`2`)
+```
+* Creating a new column called 3 which is 2 divided by 1
+```{r}
+annoying %>% mutate(Col3 = annoying$`2`/annoying$`1`)
+```
+* Renaming the columns to one, two and three
+```{r}
+annoying %>% mutate(Col3 = annoying$`2`/annoying$`1`) %>% rename("one"=`1`, "two" = `2`, "three" = Col3)
+```
+
+5). What does tibble::enframe() do? When might you use it?
+```{r}
+tibble::enframe(c(a = 5, b = 7))
+```
+*It creates a two-column data frame from vectors or lists. It might be useful when you need to convert raw data into a useable table format*
+
+6). What option controls how many additional column names are printed at the footer of a tibble?
+```{r}
+annoying %>%
+  print(n = 5)
+```
+
+# Chapter 8: Data Import
+1). What function would you use to read a file where fields were separated with “|”?
+```{r}
+read_delim(file, delim = "|")
+```
+
+2). Apart from file, skip, and comment, what other arguments do read_csv() and read_tsv() have in common?
+*n_max, guess_max, progress, col_names, col_types, locale, na, quoted_na, quote, tim_ws*
+
+4). Sometimes strings in a CSV file contain commas. To prevent them from causing problems they need to be surrounded by a quoting character, like " or '. By convention, read_csv() assumes that the quoting character will be ", and if you want to change it you’ll need to use read_delim() instead. What arguments do you need to specify to read the following text into a data frame?
+
+```{r}
+read_delim("x,y\n1,'a,b'", delim = ",", quote = "'")
+```
+
+5). Identify what is wrong with each of the following inline CSV files. What happens when you run the code?
+```{r}
+read_csv("a,b\n1,2,3\n4,5,6")
+```
+*The number of columns doesn't match the number of variables per row*
+```{r}
+read_csv("a,b,c\n1,2\n1,2,3,4")
+```
+*There is a missing value in the second row (replaced with NA) and there is an extra value in the second row*
+```{r}
+read_csv("a,b\n\"1")
+```
+*There is an extra backslash after the line break and there is a missing value in the row replaced by NA*
+```{r}
+read_csv("a,b\n1,2\na,b")
+```
+*Despite there being integer values within the rows, they're identified as characters*
+```{r}
+read_csv("a;b\n1;3")
+```
+*The code is recognizing the semicolon as part of the value instead of acting as a comma to show individual values*
+
+# Chapter 9: Tidy Data
+1). Recreate the plot showing change in cases over time using table2 instead of table1. What do you need to do first?
+```{r}
+table2_mod <-  spread(table2, key = type, value = count)
+ggplot(table2_mod, aes(year, cases)) +
+  geom_line(aes(group = country), color = "grey50") + 
+  geom_point(aes(color=country))
+```
+
+2). Why does this code fail?
+```{r}
+table4a %>% 
+  gather(1999, 2000, key = "year", value = "cases")
+```
+*The code fails because the column names are not put in single quotes, therefore it's not being read as a name but a value*
+
+# Chapter 10: Relational Data with dplyr
+1). Add a surrogate key to flights
+```{r}
+flights %>% mutate(row_number()) %>% print(n=5, width=Inf)
+```
+
+2). Add the location of the origin and destination (i.e. the lat and lon) to flights.
+```{r}
+airports_select <- airports %>%
+  select(faa, lat, lon)
+airports_select %>%
+  right_join(flights, by = c("faa"="origin")) %>%
+  rename("origin"=faa) %>%
+  rename("origin_lat"=lat) %>%
+  rename("origin_lon"=lon) %>%
+  left_join(airports_select, by = c("dest"="faa")) %>%
+  rename("dest_lat"=lat) %>%
+  rename("dest_lon"=lon)
+```
+
