@@ -4,7 +4,7 @@ author: "Kevin Cabrera"
 date: "1/10/2019"
 output: html_document
 ---
-
+dumb edit
 # Chapter 7: Tibbles
 1). Create a small tibble manually
 ```{r}
