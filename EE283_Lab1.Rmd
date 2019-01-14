@@ -6,6 +6,7 @@ output: html_document
 ---
 
 # Chapter 7: Tibbles
+### MEMES
 1). Create a small tibble manually
 ```{r}
 tibble_example <- tibble(ranks = 1:4, countries = c('Spain', 'France', 'Ukraine', 'Sweden'),
