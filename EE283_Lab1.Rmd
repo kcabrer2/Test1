@@ -1,3 +1,5 @@
+###R markdown code##
+
 ---
 title: "EE 283 - Lab 1"
 author: "Kevin Cabrera"
